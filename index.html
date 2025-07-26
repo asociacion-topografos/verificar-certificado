@@ -153,7 +153,9 @@
               <h3>✅ Certificado verificado</h3>
               <p><strong>Nombre:</strong> ${cert.Nombre}</p>
               <p><strong>ID:</strong> ${cert.ID}</p>
-              <p><strong>Fecha:</strong> ${cert.Fecha}</p>
+              <p><strong>Fecha de emisión:</strong> ${cert.Fecha}</p>
+              <!-- Botón para ver el certificado con QR -->
+              <a href="certificados/${cert.PDF}" class="btn-ver" target="_blank">📄 Ver certificado con QR</a>
             </div>
           `;
         } else {
