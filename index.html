@@ -116,7 +116,7 @@
   <div class="container">
     <div class="header">
       <!-- Logo ATP -->
-      <img src="/logoATP.png" alt="ATP Logo" style="height: 90px;">
+      <img src="logoATP.png" alt="ATP Logo" style="height: 90px;">
       <h1>Verificar Certificado</h1>
     </div>
     <div class="content">
@@ -134,36 +134,30 @@
   </div>
 
   <script>
-    document.getElementById('formVerificar').addEventListener('submit', async (e) => {
+    document.getElementById('formVerificar').addEventListener('submit', (e) => {
       e.preventDefault();
       const dni = document.getElementById('dni').value.trim();
       const resultado = document.getElementById('resultado');
-      resultado.innerHTML = '<p>Buscando...</p>';
-
-      try {
-        const res = await fetch('https://script.google.com/macros/s/AKfycby8nMltir0tOTSoZAlZQn-wYz3tZAAWIZkpOzBfZd0OOiZBZ2qqlvgJzqPXdnJ54plmUw/exec', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: 'dni=' + encodeURIComponent(dni)
-        });
-        const data = await res.json();
-
-        if (data.error) {
-          resultado.innerHTML = `<div class="error">${data.error}</div>`;
-        } else {
+      resultado.innerHTML = 'Buscando...';
+    
+      const script = document.createElement('script');
+      script.src = 'https://script.google.com/macros/s/AKfycby_MfhiDXhwfL8DDhYvsGyg6L1ROFm0VeAswKm3JUiHcBtyR8HecIhlNNaX48tEG5sK8w/exec?callback=handleResponse';
+      window.handleResponse = (data) => {
+        const cert = data.find(c => c.DNI === dni);
+        if (cert) {
           resultado.innerHTML = `
             <div class="result">
               <h3>✅ Certificado verificado</h3>
-              <p><strong>Nombre:</strong> ${data.nombre}</p>
-              <p><strong>ID:</strong> ${data.id}</p>
-              <p><strong>Fecha de emisión:</strong> ${new Date(data.createdAt).toLocaleDateString('es-ES')}</p>
-              <a href="/certificado/${data.id}" class="btn-ver" target="_blank">Ver certificado</a>
+              <p><strong>Nombre:</strong> ${cert.Nombre}</p>
+              <p><strong>ID:</strong> ${cert.ID}</p>
+              <p><strong>Fecha:</strong> ${cert.Fecha}</p>
             </div>
           `;
+        } else {
+          resultado.innerHTML = `<div class="error">No se encontró ningún certificado con ese DNI.</div>`;
         }
-      } catch (err) {
-        resultado.innerHTML = `<div class="error">Error de conexión. Intente nuevamente.</div>`;
-      }
+      };
+      document.head.appendChild(script);
     });
   </script>
 </body>
