@@ -34,40 +34,69 @@
       e.preventDefault();
       const dni = document.getElementById('dni').value.trim();
       const resultado = document.getElementById('resultado');
-      resultado.innerHTML = 'Buscando...';
+      
+      if (!dni) {
+        resultado.innerHTML = '<div class="error">Ingrese un DNI válido</div>';
+        return;
+      }
+      
+      resultado.innerHTML = '<p>Buscando...</p>';
 
-      // Eliminar script anterior
+      // Eliminar script anterior si existe
       const oldScript = document.getElementById('data-script');
       if (oldScript) oldScript.remove();
 
-      // Definir primero la función
+      // Definir la función callback
       window.handleResponse = (data) => {
-        const cert = data.find(c => c.DNI === dni);
-        if (cert) {
-          resultado.innerHTML = `
-            <div class="result">
-              <h3>✅ Certificado verificado</h3>
-              <p><strong>Nombre:</strong> ${cert.Nombre}</p>
-              <p><strong>ID:</strong> ${cert.ID}</p>
-              <p><strong>Fecha de emisión:</strong> ${cert.Fecha}</p>
-              <!-- Botón para ver el certificado con QR -->
-              <a href="certificados/${cert.PDF}" class="btn-ver" target="_blank">📄 Ver certificado con QR</a>
-              <a href="certificados/${cert.ID}.pdf" class="btn-descargar" download="${cert.Nombre}_certificado.pdf">Descargar certificado</a>
-            </div>
-          `;
-        } else {
-          resultado.innerHTML = `<div class="error">No se encontró ningún certificado con ese DNI.</div>`;
+        try {
+          console.log('Datos recibidos:', data); // Para depuración
+          
+          if (data && Array.isArray(data) && data.length > 0) {
+            const cert = data.find(c => c.DNI === dni);
+            if (cert) {
+              // Verificar qué campos tiene el certificado
+              console.log('Certificado encontrado:', cert);
+              
+              resultado.innerHTML = `
+                <div class="result">
+                  <h3>✅ Certificado verificado</h3>
+                  <p><strong>Nombre:</strong> ${cert.Nombre || 'No disponible'}</p>
+                  <p><strong>ID:</strong> ${cert.ID || 'No disponible'}</p>
+                  <p><strong>Fecha de emisión:</strong> ${cert.Fecha || 'No disponible'}</p>
+                  <!-- Botón para ver el certificado -->
+                  <a href="certificados/${cert.PDF || cert.ID + '.pdf'}" class="btn-ver" target="_blank">📄 Ver certificado</a>
+                  <!-- Botón para descargar el certificado -->
+                  <a href="certificados/${cert.PDF || cert.ID + '.pdf'}" class="btn-descargar" download="${cert.Nombre || 'certificado'}_${cert.ID || 'ATP'}.pdf">📥 Descargar certificado</a>
+                </div>
+              `;
+            } else {
+              resultado.innerHTML = `<div class="error">No se encontró ningún certificado con ese DNI.</div>`;
+            }
+          } else {
+            resultado.innerHTML = `<div class="error">No se encontraron certificados en la base de datos.</div>`;
+          }
+        } catch (error) {
+          console.error('Error procesando datos:', error);
+          resultado.innerHTML = `<div class="error">Error procesando los datos. Intente nuevamente.</div>`;
         }
+        
+        // Limpiar la función global
+        delete window.handleResponse;
       };
 
-      // Ahora crear el script
+      // Crear el script con la URL corregida (sin espacios al principio y al final)
       const script = document.createElement('script');
       script.id = 'data-script';
       script.src = 'https://script.google.com/macros/s/AKfycbwsPRfB4sj1qyjmDbAPZioaiPeH5GyBR-aHgUHoFxXHmbLY5TgxnIOotDToMXt7aDK4/exec?callback=handleResponse';
+      script.onerror = function() {
+        resultado.innerHTML = '<div class="error">Error de conexión con el servidor. Intente nuevamente.</div>';
+        delete window.handleResponse;
+      };
       document.head.appendChild(script);
     });
   </script>
 </body>
 </html>
+
 
 
