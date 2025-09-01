@@ -3,68 +3,67 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="description" content="Verifica la autenticidad de tu certificado ATP">
   <title>Verificar Certificado | ATP</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <!-- Logo ATP -->
-      <img src="assets/logoATP.png" alt="ATP Logo" style="height: 90px;">
+      <img src="assets/logoATP.png" alt="ATP Logo">
       <h1>Verificar Certificado</h1>
     </div>
     <div class="content">
       <p class="subtitle">Ingrese su DNI para verificar la autenticidad de su certificado.</p>
 
-      <form id="formVerificar">
-        <div class="form-group">
-          <input type="text" id="dni" name="dni" placeholder="Ingrese su DNI" required />
-          <button type="submit">Buscar</button>
-        </div>
-      </form>
-
+      <div class="form-group">
+        <input type="text" id="dni" placeholder="Ingrese su DNI" />
+        <button onclick="buscar()">Buscar</button>
+      </div>
       <div id="resultado"></div>
     </div>
   </div>
 
   <script>
-    document.getElementById('formVerificar').addEventListener('submit', (e) => {
-      e.preventDefault();
+    async function buscar() {
       const dni = document.getElementById('dni').value.trim();
       const resultado = document.getElementById('resultado');
+
+      if (!dni) {
+        resultado.innerHTML = '<div class="error">Ingrese un DNI válido</div>';
+        return;
+      }
+
       resultado.innerHTML = 'Buscando...';
-    
-      // Eliminar script anterior
-      const oldScript = document.getElementById('data-script');
-      if (oldScript) oldScript.remove();
-    
-      // Definir primero la función
-      window.handleResponse = (data) => {
-        const cert = data.find(c => c.DNI === dni);
-        if (cert) {
+
+      try {
+        // 🔁 Reemplaza con tu URL de Railway o Render
+        const res = await fetch('https://sistema-certificados.up.railway.app/buscar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dni })
+        });
+
+        const data = await res.json();
+
+        if (data.error) {
+          resultado.innerHTML = `<div class="error">${data.error}</div>`;
+        } else {
           resultado.innerHTML = `
             <div class="result">
               <h3>✅ Certificado verificado</h3>
-              <p><strong>Nombre:</strong> ${cert.Nombre}</p>
-              <p><strong>ID:</strong> ${cert.ID}</p>
-              <p><strong>Fecha de emisión:</strong> ${cert.Fecha}</p>
-              <!-- Botón para ver el certificado con QR -->
-              <a href="certificados/${cert.PDF}" class="btn-ver" target="_blank">📄 Ver certificado con QR</a>
+              <p><strong>Nombre:</strong> ${data.nombre}</p>
+              <p><strong>ID:</strong> ${data.id}</p>
+              <p><strong>Fecha:</strong> ${data.createdAt}</p>
+              <a href="certificados/${data.id}.pdf" class="btn-ver" target="_blank">Ver certificado</a>
+              <a href="certificados/${data.id}.pdf" class="btn-descargar" download="${data.nombre}_certificado.pdf">Descargar certificado</a>
             </div>
           `;
-        } else {
-          resultado.innerHTML = `<div class="error">No se encontró ningún certificado con ese DNI.</div>`;
         }
-      };
-    
-      // Ahora crear el script
-      const script = document.createElement('script');
-      script.id = 'data-script';
-      script.src = 'https://script.google.com/macros/s/AKfycbwsPRfB4sj1qyjmDbAPZioaiPeH5GyBR-aHgUHoFxXHmbLY5TgxnIOotDToMXt7aDK4/exec?callback=handleResponse';
-      document.head.appendChild(script);
-    });
+      } catch (err) {
+        resultado.innerHTML = '<div class="error">Error de conexión. Intente nuevamente.</div>';
+        console.error(err);
+      }
+    }
   </script>
 </body>
 </html>
