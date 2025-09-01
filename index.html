@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Verificar Certificado | ATP</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body>
@@ -23,26 +24,19 @@
     </div>
   </div>
 
-  <script>
-    async function buscar() {
+    <script>
+    document.getElementById('formVerificar').addEventListener('submit', async (e) => {
+      e.preventDefault();
       const dni = document.getElementById('dni').value.trim();
       const resultado = document.getElementById('resultado');
-
-      if (!dni) {
-        resultado.innerHTML = '<div class="error">Ingrese un DNI válido</div>';
-        return;
-      }
-
-      resultado.innerHTML = 'Buscando...';
+      resultado.innerHTML = '<p>Buscando...</p>';
 
       try {
-        // 🔁 Reemplaza con tu URL de Railway o Render
-        const res = await fetch('https://sistema-certificados.up.railway.app/buscar', {
+        const res = await fetch('https://script.google.com/macros/s/AKfycby_MfhiDXhwfL8DDhYvsGyg6L1ROFm0VeAswKm3JUiHcBtyR8HecIhlNNaX48tEG5sK8w/exec', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ dni })
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: 'dni=' + encodeURIComponent(dni)
         });
-
         const data = await res.json();
 
         if (data.error) {
@@ -53,17 +47,16 @@
               <h3>✅ Certificado verificado</h3>
               <p><strong>Nombre:</strong> ${data.nombre}</p>
               <p><strong>ID:</strong> ${data.id}</p>
-              <p><strong>Fecha:</strong> ${data.createdAt}</p>
-              <a href="certificados/${data.id}.pdf" class="btn-ver" target="_blank">Ver certificado</a>
-              <a href="certificados/${data.id}.pdf" class="btn-descargar" download="${data.nombre}_certificado.pdf">Descargar certificado</a>
+              <p><strong>Fecha de emisión:</strong> ${new Date(data.createdAt).toLocaleDateString('es-ES')}</p>
+              <a href="/certificado/${data.id}" class="btn-ver" target="_blank">Ver certificado</a>
             </div>
+            <a href="certificados/${data.id}.pdf" class="btn-descargar" download="${data.nombre}_certificado.pdf">Descargar certificado</a>
           `;
         }
       } catch (err) {
-        resultado.innerHTML = '<div class="error">Error de conexión. Intente nuevamente.</div>';
-        console.error(err);
+        resultado.innerHTML = `<div class="error">Error de conexión. Intente nuevamente.</div>`;
       }
-    }
+    });
   </script>
 </body>
 </html>
