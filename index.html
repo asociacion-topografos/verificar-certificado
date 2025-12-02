@@ -28,47 +28,70 @@
       <div id="resultado"></div>
     </div>
   </div>
-
   <script>
     document.getElementById('formVerificar').addEventListener('submit', (e) => {
       e.preventDefault();
       const dni = document.getElementById('dni').value.trim();
       const resultado = document.getElementById('resultado');
-      resultado.innerHTML = 'Buscando...';
-
-      // Eliminar script anterior
+      resultado.innerHTML = '<p>Buscando...</p>';
+  
+      // Eliminar script anterior para evitar duplicados
       const oldScript = document.getElementById('data-script');
       if (oldScript) oldScript.remove();
-
-      // Definir primero la función
+  
+      // Definir función que maneja la respuesta (ahora con múltiples resultados)
       window.handleResponse = (data) => {
-        const cert = data.find(c => c.DNI === dni);
-        if (cert) {
+        // Filtrar TODOS los certificados con el DNI ingresado
+        const certificados = data.filter(c => 
+          String(c.DNI).trim() === String(dni).trim()
+        );
+  
+        if (certificados.length === 0) {
           resultado.innerHTML = `
-            <div class="result">
-              <h3>✅ Certificado verificado</h3>
-              <p><strong>Nombre:</strong> ${cert.Nombre}</p>
-              <p><strong>ID:</strong> ${cert.ID}</p>
-              <p><strong>Fecha de emisión:</strong> ${cert.Fecha}</p>
-              <!-- Botón para ver el certificado con QR -->
-              <a href="certificados/${cert.PDF}" class="btn-ver" target="_blank">📄 Ver certificado con QR</a>
-              <a href="https://asociacion-topografos.github.io/verificar-certificado/certificados/${cert.ID}.pdf" class="btn-descargar" download="${cert.Nombre}_certificado.pdf">Descargar certificado</a>
+            <div class="error">
+              <h3>❌ No encontrado</h3>
+              <p>No se encontró ningún certificado con el DNI <strong>${dni}</strong>.</p>
             </div>
           `;
-        } else {
-          resultado.innerHTML = `<div class="error">No se encontró ningún certificado con ese DNI.</div>`;
+          return;
         }
+  
+        // Generar HTML para cada certificado
+        const itemsHTML = certificados.map((cert, index) => `
+          <div class="result-item">
+            <h4>📄 Certificado #${index + 1}</h4>
+            <p><strong>Nombre:</strong> ${cert.Nombre || '—'}</p>
+            <p><strong>ID:</strong> ${cert.ID || '—'}</p>
+            <p><strong>Fecha:</strong> ${(cert.Fecha || '').split('T')[0] || '—'}</p>
+            <p><strong>Estado:</strong> ${cert.Estado || '—'}</p>
+            <div class="btn-group">
+              <a href="certificados/${cert.PDF}" target="_blank" class="btn-ver">👁️ Ver con QR</a>
+              <a href="https://asociacion-topografos.github.io/verificar-certificado/certificados/${cert.PDF}" 
+                 download="${cert.Nombre?.replace(/\s+/g, '_') || 'certificado'}_${cert.ID}.pdf" 
+                 class="btn-descargar">⬇️ Descargar PDF</a>
+            </div>
+          </div>
+        `).join('');
+  
+        resultado.innerHTML = `
+          <div class="result">
+            <h3>✅ Se encontraron ${certificados.length} certificado${certificados.length > 1 ? 's' : ''}</h3>
+            ${itemsHTML}
+          </div>
+        `;
       };
-
-      // Ahora crear el script
+  
+      // Añadir el script dinámicamente (corregido: sin espacio al inicio de la URL)
       const script = document.createElement('script');
       script.id = 'data-script';
-      script.src = ' https://script.google.com/macros/s/AKfycbwsPRfB4sj1qyjmDbAPZioaiPeH5GyBR-aHgUHoFxXHmbLY5TgxnIOotDToMXt7aDK4/exec?callback=handleResponse';
+      script.src = `https://script.google.com/macros/s/AKfycbwsPRfB4sj1qyjmDbAPZioaiPeH5GyBR-aHgUHoFxXHmbLY5TgxnIOotDToMXt7aDK4/exec?callback=handleResponse`;
       document.head.appendChild(script);
     });
   </script>
+  
 </body>
 </html> 
+
 
 
 
