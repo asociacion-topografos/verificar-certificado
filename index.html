@@ -65,10 +65,10 @@
             <p><strong>Fecha:</strong> ${(cert.Fecha || '').split('T')[0] || '—'}</p>
             <p><strong>Estado:</strong> ${cert.Estado || '—'}</p>
             <div class="btn-group">
-              <a href="certificados/${cert.PDF}" target="_blank" class="btn-ver">👁️ Ver con QR</a>
+              <a href="certificados/${cert.PDF}" target="_blank" class="btn-ver">Ver certificado</a>
               <a href="https://asociacion-topografos.github.io/verificar-certificado/certificados/${cert.PDF}" 
                  download="${cert.Nombre?.replace(/\s+/g, '_') || 'certificado'}_${cert.ID}.pdf" 
-                 class="btn-descargar">⬇️ Descargar PDF</a>
+                 class="btn-descargar">Descargar certificado</a>
             </div>
           </div>
         `).join('');
@@ -91,6 +91,7 @@
   
 </body>
 </html> 
+
 
 
 
